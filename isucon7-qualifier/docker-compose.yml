@@ -25,22 +25,23 @@ services:
       - "80:80"
   app:
     build:
-      #context: ./docker/app/golang
+      context: ./docker/app/golang
       #context: ./docker/app/nodejs
       #context: ./docker/app/perl
-      context: ./docker/app/python
+      #context: ./docker/app/python
       #context: ./docker/app/ruby
       args:
         GIT_URL: https://github.com/isucon/isucon7-qualify.git
-    #image: isucon7-qualifier-app:golang
+    image: isucon7-qualifier-app:golang
     #image: isucon7-qualifier-app:nodejs
     #image: isucon7-qualifier-app:perl
-    image: isucon7-qualifier-app:python
+    #image: isucon7-qualifier-app:python
     #image: isucon7-qualifier-app:ruby
     networks:
       - backend
     depends_on:
-       - db
+      db:
+        condition: service_healthy
     ports:
       - "5000"
     environment:
@@ -58,6 +59,12 @@ services:
     networks:
       - backend
     command: ["--character-set-server=utf8mb4"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysql --host=127.0.0.1 --user=\"$$MYSQL_USER\" --password=\"$$MYSQL_PASSWORD\" --database=\"$$MYSQL_DATABASE\" --execute='SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      start_period: 5m
+      retries: 12
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       #MYSQL_DATABASE: isubata
